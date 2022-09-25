@@ -1,0 +1,63 @@
+service: lambda-dynamodb-tri
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  profile: brkybzkrtegitim
+  cors: true
+  region: eu-west-1
+  environment:
+      tableName: ${self:custom.tableName}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+          - dynamodb:*
+      Resource: '*'
+
+plugins:
+    - serverless-webpack
+
+package: 
+    individually: true
+
+custom:
+  tableName: EmployeesTable
+
+functions:
+  createEmployee:
+    handler: functions/createEmployee.handler
+    events:
+      - httpApi:
+          path: /
+          method: post
+  getEmployee:
+    handler: functions/getEmployee.handler
+    events:
+      - httpApi:
+          path: /{ID}
+          method: get
+  deleteEmployee:
+    handler: functions/deleteEmployee.handler
+    events:
+      - httpApi:
+          path: /{ID}
+          method: delete
+
+
+
+resources:
+  Resources:
+      UsersDynamoDB:
+          Type: AWS::DynamoDB::Table
+          Properties:
+            TableName: ${self:custom.tableName}
+            AttributeDefinitions:
+              - AttributeName: ID
+                AttributeType: S
+            KeySchema:
+              - AttributeName: ID
+                KeyType: HASH
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
